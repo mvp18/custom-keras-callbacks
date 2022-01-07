@@ -1,0 +1,19 @@
+# initial params
+gpu: 0
+seed: 1234
+num_classes: 10
+image_size: [28, 28, 1]
+val_split: 0.2
+
+# training params
+batch_size: 128
+learning_rate: 0.01
+max_lr: 0.01
+min_lr: 0.00001
+epochs: 200
+nesterov: True
+monitor: "val_accuracy"
+min_delta: 0
+verbose: 1
+mode: "max"
+patience: 10
