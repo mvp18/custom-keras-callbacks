@@ -1,8 +1,8 @@
 ### Getting Started
 
 ```
-conda create --name keras224 --file requirements.txt
-conda activate keras224
+conda create --name keras243 --file requirements.txt
+conda activate keras243
 cd custom-keras-callbacks/src
 python3 [dataset].py; [dataset] = {mnist, cifar10, cifar100}
 ```
