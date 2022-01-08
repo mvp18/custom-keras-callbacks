@@ -1,6 +1,8 @@
 import os
 import yaml
 import random
+from datetime import datetime
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -38,14 +40,19 @@ x_test = np.expand_dims(x_test, -1)
 
 model = build_model(config)
 
-tb_cb = TensorBoard(log_dir='../logs/mnist/tensorboard', histogram_freq=0)
+logdir = '../logs/mnist/tensorboard/' + datetime.now().strftime("%Y%m%d-%H%M%S")
+tboard = TensorBoard(log_dir=logdir, histogram_freq=0)
+
 num_batches = x_train.shape[0]//config["batch_size"]
 change_lr = CyclicLR(base_lr=config["min_lr"], max_lr=config["max_lr"], step_size=2*num_batches, mode='triangular')
+
 checkpoint = ModelCheckpoint('../weights/mnist/best_model.h5', monitor=config["monitor"], save_best_only=True, verbose=config["verbose"], 
 							 mode=config["mode"])
+
 early_stop = EarlyStopping(monitor=config["monitor"], min_delta=config["min_delta"], patience=config["patience"], verbose=config["verbose"], 
 						   mode=config["mode"])
-cbks = [change_lr, tb_cb, checkpoint, early_stop]
+
+cbks = [tboard, change_lr, checkpoint, early_stop]
 
 model.fit(x_train, y_train, batch_size=config["batch_size"], epochs=config["epochs"], validation_split=config["val_split"], 
 		  callbacks=cbks, shuffle=True)

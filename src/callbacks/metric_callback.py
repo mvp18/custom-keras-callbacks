@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.keras.callbacks import Callback
 import tensorflow.keras.backend as K
 import numpy as np
@@ -30,3 +31,9 @@ class clf_metrics(Callback):
 		logs["val_precision"] = prec
 		logs["val_recall"] = rec
 		logs["val_roc_auc"] = roc_auc
+
+		# Registering as Tensorboard scalars for visualization with loss and accuracy 
+		tf.summary.scalar('val_f1', data=f1, step=epoch)
+		tf.summary.scalar('val_precision', data=prec, step=epoch)
+		tf.summary.scalar('val_recall', data=rec, step=epoch)
+		tf.summary.scalar('val_roc_auc', data=roc_auc, step=epoch)

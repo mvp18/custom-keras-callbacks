@@ -9,7 +9,7 @@ val_split: 0.2
 batch_size: 128
 learning_rate: 0.01
 max_lr: 0.01
-min_lr: 0.00001
+min_lr: 0.0001
 epochs: 200
 nesterov: True
 monitor: "val_accuracy"

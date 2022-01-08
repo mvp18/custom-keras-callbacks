@@ -1,6 +1,8 @@
 import os
 import yaml
 import random
+from datetime import datetime
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -47,13 +49,20 @@ print('Train:{}; Val:{}; Test:{}.'.format(x_train.shape[0], x_val.shape[0], x_te
 
 model = build_model(config)
 
-tb_cb = TensorBoard(log_dir='../logs/cifar100/tensorboard', histogram_freq=0)
+logdir = '../logs/cifar100/tensorboard/' + datetime.now().strftime("%Y%m%d-%H%M%S")
+file_writer = tf.summary.create_file_writer(logdir)
+file_writer.set_as_default()
+tboard = TensorBoard(log_dir=logdir, histogram_freq=0)
+
 num_batches = x_train.shape[0]//config["batch_size"]
 change_lr = SGDRScheduler(min_lr=config["min_lr"], max_lr=config["max_lr"], steps_per_epoch=num_batches, lr_decay=0.9, cycle_length=5, mult_factor=1.2)
+
 metrics = clf_metrics(x_val, y_val)
+
 checkpoint = EarlyStop_ModelChkpt(monitor=config["monitor"], min_delta=config["min_delta"], patience=config["patience"], 
 								  verbose=config["verbose"], mode=config["mode"])
-cbks = [tb_cb, change_lr, metrics, checkpoint]
+
+cbks = [tboard, change_lr, metrics, checkpoint]
 
 model.fit(x_train, y_train, batch_size=config["batch_size"], epochs=config["epochs"], validation_data=(x_val, y_val), 
 		  callbacks=cbks, shuffle=True)

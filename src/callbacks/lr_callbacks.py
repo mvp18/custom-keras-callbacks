@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.keras.callbacks import Callback
 import tensorflow.keras.backend as K
 import numpy as np

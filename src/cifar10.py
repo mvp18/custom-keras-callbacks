@@ -1,6 +1,8 @@
 import os
 import yaml
 import random
+from datetime import datetime
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -22,12 +24,21 @@ np.random.seed(config["seed"])
 random.seed(config["seed"])
 
 
-def scheduler(epoch):
-    if epoch < 100:
-        return 0.01
-    if epoch < 150:
-        return 0.005
-    return 0.001
+def lr_scheduler(epoch):
+	"""
+	Returns a custom learning rate that decreases as epochs progress.
+	"""
+	learning_rate = config["learning_rate"]
+	if epoch > 10:
+		learning_rate = 0.005
+	if epoch > 20:
+		learning_rate = 0.001
+	if epoch > 50:
+		learning_rate = 0.0001
+
+	tf.summary.scalar('learning rate', data=learning_rate, step=epoch)
+
+	return learning_rate
 
 
 # load data
@@ -39,18 +50,24 @@ x_test = x_test.astype('float32')/255.0
 
 model = build_model(config)
 
-tb_cb = TensorBoard(log_dir='../logs/cifar10/tensorboard', histogram_freq=0)
-change_lr = LearningRateScheduler(scheduler, verbose=1)
+logdir = '../logs/cifar10/tensorboard/' + datetime.now().strftime("%Y%m%d-%H%M%S")
+file_writer = tf.summary.create_file_writer(logdir)
+file_writer.set_as_default()
+tboard = TensorBoard(log_dir=logdir, histogram_freq=0)
+
+change_lr = LearningRateScheduler(lr_scheduler, verbose=1)
+
 checkpoint = EarlyStop_ModelChkpt(monitor=config["monitor"], min_delta=config["min_delta"], patience=config["patience"], 
 								 verbose=config["verbose"], mode=config["mode"])
-cbks = [change_lr, tb_cb, checkpoint]
+
+cbks = [tboard, change_lr, checkpoint]
 
 model.fit(x_train, y_train, batch_size=config["batch_size"], epochs=config["epochs"], validation_split=config["val_split"], 
 		  callbacks=cbks, shuffle=True)
 
 print("\nRestoring model weights from the end of the best epoch.")
 model.set_weights(checkpoint.best_weights)
-model_save_name = '{}-{}_epoch-{}'.format(checkpoint.monitor, checkpoint.best, checkpoint.best_epoch)
+model_save_name = '{}-{:.4f}_epoch-{}'.format(checkpoint.monitor, checkpoint.best, checkpoint.best_epoch)
 model.save('../weights/cifar10/' + model_save_name + '.h5')
 
 score = model.evaluate(x_test, y_test, verbose=0)

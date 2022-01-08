@@ -17,7 +17,7 @@ class EarlyStop_ModelChkpt(Callback):
         self.monitor_cond = np.less if self.mode=="min" else np.greater
         if self.mode=="min":
             self.min_delta *= -1
-                
+            
     
     def on_train_begin(self, logs=None):        
         # The number of epoch it has waited when loss is no longer minimum.
